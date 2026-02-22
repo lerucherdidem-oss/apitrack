@@ -141,8 +141,8 @@ select.field-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http:/
   <button class="sync-btn" onclick="syncPending()">🔄 Synchroniser maintenant</button>
 </div>
 <script>
-const SB_URL=localStorage.getItem('sb_url')||'';
-const SB_KEY=localStorage.getItem('sb_key')||'';
+const SUPABASE_URL = "https://usuzzqsrddpqjlrhpsqt.supabase.co";
+const SUPABASE_ANON_KEY = "TON_ANON_KEY_eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVzdXp6cXNyZGRwcWpscmhwc3F0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1OTIwNjAsImV4cCI6MjA4NzE2ODA2MH0.yNIXTh2s-D1iirIULe54iB1zevNWD-kqdktwPxlksSc";
 let sb=null,currentUser=null,reineVue=null,photoDataUrl=null;
 const params=new URLSearchParams(window.location.search);
 const RUCHE_ID=params.get('visite')||params.get('id')||'';
