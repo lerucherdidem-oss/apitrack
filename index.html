@@ -3300,9 +3300,16 @@ function toggleQrConfig() {
 }
 
 function buildTerrainUrl(ruche) {
-  // URL de l'appli elle-même avec paramètre pour ouvrir la visite directement
-  const appUrl = window.location.href.split('?')[0];
-  return `${appUrl}?visite=${ruche.id}&n=${ruche.numero}`;
+  // Pointe vers terrain.html avec tous les paramètres nécessaires
+  const appBase = window.location.href.split('?')[0].replace('index.html','');
+  const params = new URLSearchParams({
+    visite: ruche.id,
+    n: ruche.numero,
+    nom: ruche.nom || ('Ruche #' + ruche.numero),
+    rucher: ruche.ruchers?.nom || '',
+    type: ruche.type_ruche || 'Dadant',
+  });
+  return `${appBase}terrain.html?${params.toString()}`;
 }
 
 async function renderFicheQR(ruche) {
