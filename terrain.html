@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Fiche Terrain — ApiTrack</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--honey:#F5A623;--amber:#E08A00;--green:#3DAA6C;--red:#E05A3A;--bg:#FFFBF3;--card:#FFFFFF;--border:#EAE6DC;--text:#2D2A22;--text2:#6B6558;--text3:#A09A8C;--honey-light:#FFF8EA;--honey-mid:#FDECC8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:40px}
+.header{background:linear-gradient(135deg,#2D2A22,#3D3A30);padding:16px 20px 14px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.header-logo{font-size:28px}.header-title{font-size:18px;font-weight:900;color:var(--honey)}.header-sub{font-size:11px;color:#A09A8C;font-weight:600}
+.ruche-banner{background:linear-gradient(135deg,var(--honey),var(--amber));padding:20px;color:white;position:relative;overflow:hidden}
+.ruche-banner::before{content:'beehive';position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:64px;opacity:.12}
+.ruche-num-badge{display:inline-block;background:rgba(255,255,255,.25);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.ruche-nom{font-size:28px;font-weight:900;margin-bottom:4px}.ruche-meta{font-size:13px;opacity:.85;font-weight:600}
+.card{margin:14px;background:var(--card);border-radius:16px;border:2px solid var(--border);overflow:hidden}
+.card-title{padding:12px 16px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--amber);background:var(--honey-light);border-bottom:1px solid var(--honey-mid);display:flex;align-items:center;gap:6px}
+.card-body{padding:16px;display:flex;flex-direction:column;gap:14px}
+.field-label{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--text2);margin-bottom:6px;display:block}
+.field-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-family:'Nunito',sans-serif;font-size:15px;background:var(--bg);color:var(--text);outline:none;transition:border-color .2s;-webkit-appearance:none}
+.field-input:focus{border-color:var(--honey)}
+select.field-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A09A8C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.reine-toggle{display:flex;gap:10px}
+.reine-btn{flex:1;padding:14px;border-radius:12px;border:2px solid var(--border);background:var(--bg);font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer;text-align:center;transition:all .15s}
+.reine-btn.active-oui{background:#E8F7EF;border-color:var(--green);color:var(--green)}
+.reine-btn.active-non{background:#FDF0ED;border-color:var(--red);color:var(--red)}
+.counter-row{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:10px;overflow:hidden}
+.counter-btn{width:52px;height:52px;background:var(--bg);border:none;font-size:24px;font-weight:700;cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.counter-btn:active{background:var(--honey-mid)}.counter-val{flex:1;text-align:center;font-size:22px;font-weight:900;color:var(--text);background:white}
+.score-display{background:var(--honey-light);border:1.5px solid var(--honey-mid);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:14px}
+.score-circle{width:60px;height:60px;border-radius:50%;background:var(--honey);color:white;font-size:17px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .3s}
+.photo-preview{width:100%;height:220px;object-fit:cover;display:block}
+.photo-placeholder{height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--text3);cursor:pointer;background:var(--bg)}
+.photo-btn-row{display:flex;gap:10px;padding:12px}
+.photo-btn{flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text);cursor:pointer;text-align:center}
+.photo-btn.primary{background:var(--honey);border-color:var(--honey);color:white}
+.save-btn{margin:14px;width:calc(100% - 28px);padding:18px;background:linear-gradient(135deg,var(--honey),var(--amber));color:white;border:none;border-radius:16px;font-family:'Nunito',sans-serif;font-size:17px;font-weight:900;cursor:pointer;box-shadow:0 4px 20px rgba(245,166,35,.4);display:block}
+.save-btn:disabled{opacity:.6}
+.conn-card{margin:14px;background:var(--card);border-radius:16px;border:2px solid var(--honey-mid);padding:14px}
+.conn-row{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text2)}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}.dot.green{background:var(--green)}.dot.red{background:var(--red)}.dot.orange{background:var(--honey)}
+.offline-badge{display:none;background:#FFF3E0;border:1.5px solid #FFB74D;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:700;color:#E65100;margin:0 14px 14px;text-align:center}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:12px;font-size:14px;font-weight:800;color:white;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.2);white-space:nowrap;max-width:90vw;text-align:center}
+.toast.success{background:var(--green)}.toast.error{background:var(--red)}
+.pending-section{margin:14px;background:var(--card);border-radius:16px;border:2px dashed var(--honey-mid);overflow:hidden;display:none}
+.pending-item{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px}
+.sync-btn{width:100%;padding:13px;background:var(--green);color:white;border:none;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;cursor:pointer}
+
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.photo-thumb{position:relative;border-radius:14px;overflow:hidden;border:2px solid var(--border);background:var(--bg);aspect-ratio:1/1}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-thumb .rm{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:10px;border:1.5px solid rgba(0,0,0,.12);background:rgba(255,255,255,.92);cursor:pointer;font-weight:900}
+.photo-help{font-size:11px;color:var(--text3);font-weight:700;margin-top:8px}
+
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="header-logo">🐝</div>
+  
+<div class="conn-card" id="cfg-card" style="display:none">
+  <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--amber);margin-bottom:10px">⚙️ Configuration & Connexion</div>
+
+  <div style="display:grid;grid-template-columns:1fr;gap:10px">
+    <div>
+      <div class="field-label">Supabase URL</div>
+      <input class="field-input" id="cfg-url" placeholder="https://xxxx.supabase.co">
+    </div>
+    <div>
+      <div class="field-label">Anon key</div>
+      <textarea class="field-input" id="cfg-key" rows="2" placeholder="eyJhbGciOi..."></textarea>
+      <div style="font-size:11px;color:var(--text3);font-weight:700;margin-top:6px">Astuce : tu peux copier/coller depuis l’appli principale (Paramètres).</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div>
+        <div class="field-label">Email</div>
+        <input class="field-input" id="cfg-email" type="email" placeholder="toi@mail.com">
+      </div>
+      <div>
+        <div class="field-label">Mot de passe</div>
+        <input class="field-input" id="cfg-pass" type="password" placeholder="••••••••">
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="photo-btn primary" type="button" onclick="saveCfgAndInit()">💾 Enregistrer & Initialiser</button>
+      <button class="photo-btn" type="button" onclick="signInTerrain()">🔐 Se connecter</button>
+      <button class="photo-btn" type="button" onclick="signOutTerrain()">🚪 Se déconnecter</button>
+    </div>
+
+    <div id="cfg-hint" style="font-size:11px;color:var(--text3);font-weight:700"></div>
+  </div>
+</div>
+<div><div class="header-title">Fiche Terrain</div><div class="header-sub">Le Rucher d'Idem</div></div>
+</div>
+<div class="ruche-banner">
+  <div class="ruche-num-badge">Ruche <span id="t-num">—</span></div>
+  <div class="ruche-nom" id="t-nom">Chargement...</div>
+  <div class="ruche-meta" id="t-meta">—</div>
+</div>
+<div class="conn-card">
+  <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--amber);margin-bottom:10px">🔗 Synchronisation</div>
+  <div class="conn-row"><div class="dot orange" id="dot"></div><span id="conn-status">Connexion...</span></div>
+  <div id="conn-detail" style="font-size:11px;color:var(--text3);font-weight:600;margin-top:4px"></div>
+</div>
+<div class="offline-badge" id="offline-badge">📵 Hors ligne — visite sauvegardée localement.</div>
+
+<div class="card">
+  <div class="card-title">📷 Photos de la ruche (max 3)</div>
+  <div class="card-body">
+    <div id="photo-grid" class="photo-grid"></div>
+    <div class="photo-help">Ajoute jusqu’à 3 photos. Hors ligne, ça se stocke en local (limité).</div>
+    <div class="photo-btn-row" style="padding:0;margin-top:10px">
+      <button class="photo-btn primary" type="button" onclick="pickPhoto('cam')">📷 Appareil photo</button>
+      <button class="photo-btn" type="button" onclick="pickPhoto('gal')">🖼️ Galerie</button>
+    </div>
+    <input type="file" id="photo-cam" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(this)">
+    <input type="file" id="photo-gal" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">🔍 Inspection</div>
+  <div class="card-body">
+    <div><label class="field-label">📅 Date et Heure</label><input type="datetime-local" id="t-date" class="field-input"></div>
+        <div><label class="field-label">🛠️ Type de contrôle</label>
+      <select id="t-controle" class="field-input">
+        <option value="">— Sélectionner —</option>
+        <option value="avec_ouverture">Avec ouverture</option>
+        <option value="sans_ouverture">Sans ouverture</option>
+      </select>
+    </div>
+<div><label class="field-label">👑 Reine vue ?</label>
+      <div class="reine-toggle">
+        <button class="reine-btn" id="btn-oui" onclick="setReine(true)">✅ Oui</button>
+        <button class="reine-btn" id="btn-non" onclick="setReine(false)">❌ Non</button>
+        <button class="reine-btn" id="btn-nd" onclick="setReine(null)" style="flex:.5;font-size:12px">—</button>
+      </div>
+    </div>
+    <div><label class="field-label">🐝 Population</label>
+      <select id="t-pop" class="field-input" onchange="calcScore()">
+        <option value="">— Non évalué —</option><option value="faible">Faible</option>
+        <option value="moyenne">Moyenne</option><option value="forte">Forte</option><option value="très forte">Très forte</option>
+      </select>
+    </div>
+    <div><label class="field-label">🧱 Cadres de couvain</label>
+      <div class="counter-row"><button class="counter-btn" onclick="counter('t-couvain',-1)">−</button><div class="counter-val" id="t-couvain">0</div><button class="counter-btn" onclick="counter('t-couvain',1)">+</button></div>
+    </div>
+    <div><label class="field-label">📦 Hausses</label>
+      <div class="counter-row"><button class="counter-btn" onclick="counter('t-hausses',-1)">−</button><div class="counter-val" id="t-hausses">0</div><button class="counter-btn" onclick="counter('t-hausses',1)">+</button></div>
+    </div>
+    <div><label class="field-label">🍯 Réserves</label>
+      <select id="t-reserves" class="field-input" onchange="calcScore()">
+        <option value="">— Non évalué —</option><option value="insuffisantes">Insuffisantes ⚠️</option>
+        <option value="correctes">Correctes</option><option value="abondantes">Abondantes</option>
+      </select>
+    </div>
+    <div><label class="field-label">🌤️ Météo</label>
+      <select id="t-meteo" class="field-input">
+        <option value="">—</option><option value="ensoleillé">☀️ Ensoleillé</option>
+        <option value="nuageux">⛅ Nuageux</option><option value="couvert">☁️ Couvert</option>
+        <option value="pluie">🌧️ Pluie</option><option value="vent">💨 Vent</option>
+      </select>
+    </div>
+    <div><label class="field-label">😤 Tempérament</label>
+      <select id="t-temperament" class="field-input">
+        <option value="">—</option><option value="calme">😊 Calme</option>
+        <option value="normal">😐 Normal</option><option value="nerveux">😠 Nerveux</option><option value="agressif">🚨 Agressif</option>
+      </select>
+    </div>
+    <div><label class="field-label">📝 Observations</label>
+      <textarea id="t-obs" class="field-input" rows="4" placeholder="Cellules royales, comportement, travaux effectués..."></textarea>
+    </div>
+    <div class="score-display">
+      <div class="score-circle" id="t-score">—</div>
+      <div><div style="font-size:13px;font-weight:700;color:var(--text2)">Score de santé estimé</div>
+      <div id="t-score-detail" style="font-size:11px;color:var(--text3);margin-top:2px">Remplissez pour calculer</div></div>
+    </div>
+  </div>
+</div>
+<button class="save-btn" id="save-btn" onclick="saveVisite()">💾 Enregistrer la visite</button>
+<div class="pending-section" id="pending-section">
+  <div class="card-title">⏳ En attente de synchronisation</div>
+  <div id="pending-list"></div>
+  <button class="sync-btn" onclick="syncPending()">🔄 Synchroniser maintenant</button>
+</div>
+<script>
+let SB_URL=(localStorage.getItem('sb_url')||'').trim();
+let SB_KEY=(localStorage.getItem('sb_key')||'').trim();
+let sb=null,currentUser=null,reineVue=null;
+let photos=[]; // [{file, dataUrl}]
+
+const params=new URLSearchParams(window.location.search);
+const LR = (params.get('lr') || params.get('r') || '').trim();
+let RUCHE_ID=params.get('ruche')||params.get('v')||params.get('visite')||params.get('id')||'';
+
+// Mode "QR court" : on peut n'avoir que ?ruche=<uuid>
+let RUCHE_NUM=params.get('n')||'';
+let RUCHE_NOM=decodeURIComponent(params.get('nom')||'');
+let RUCHE_RUCHER=decodeURIComponent(params.get('rucher')||'');
+let RUCHE_TYPE=decodeURIComponent(params.get('type')||'Dadant');
+
+// Fallback d'affichage si on n'a rien dans l'URL
+if(!RUCHE_NUM){
+  RUCHE_NUM = RUCHE_ID ? (RUCHE_ID.slice(0,6)+'…') : '?';
+}
+if(!RUCHE_NOM){
+  RUCHE_NOM = RUCHE_ID ? 'Ruche' : ('Ruche #'+RUCHE_NUM);
+}
+
+function setHeader(){
+  document.getElementById('t-num').textContent=RUCHE_NUM||'—';
+  document.getElementById('t-nom').textContent=RUCHE_NOM||'Ruche';
+  document.getElementById('t-meta').textContent=[RUCHE_RUCHER,RUCHE_TYPE].filter(Boolean).join(' · ')||'—';
+  document.title='Fiche Terrain — '+(RUCHE_NOM||'Ruche');
+}
+setHeader();
+(function(){const now=new Date(),pad=n=>String(n).padStart(2,'0');
+document.getElementById('t-date').value=now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+'T'+pad(now.getHours())+':'+pad(now.getMinutes());})();
+
+function showCfgCard(show, msg){
+  const card = document.getElementById('cfg-card');
+  if(card) card.style.display = show ? 'block' : 'none';
+  const hint = document.getElementById('cfg-hint');
+  if(hint) hint.textContent = msg || '';
+  // Prefill fields
+  const u = document.getElementById('cfg-url');
+  const k = document.getElementById('cfg-key');
+  if(u) u.value = SB_URL || '';
+  if(k) k.value = SB_KEY || '';
+}
+
+function saveCfgAndInit(){
+  const u = (document.getElementById('cfg-url')?.value || '').trim();
+  const k = (document.getElementById('cfg-key')?.value || '').trim();
+  if(!u || !k){
+    showToast('⚠️ URL et Anon key requises', 'error');
+    return;
+  }
+  SB_URL = u;
+  SB_KEY = k;
+  try{
+      const photo_paths = (photos && photos.length) ? await uploadPhotosForVisite(data.ruche_id) : [];
+      const payload={
+        ruche_id:data.ruche_id,
+        date_visite:data.date_visite,
+        controle:data.controle,
+        reine_vue:data.reine_vue,
+        population:data.population,
+        nb_cadres_couvain:data.nb_cadres_couvain,
+        nb_hausses:data.nb_hausses,
+        meteo:data.meteo,
+        observations:data.observations,
+        agressivite:data.agressivite,
+        essaimage_signes:false,
+        inspecteur_id:currentUser.id,
+        photo_paths: photo_paths.length ? photo_paths : null
+      };
+      const{error}=await sb.from('visites').insert(payload);
+      if(error)throw error;
+      showToast('✅ Visite enregistrée !','success');
+      resetForm();
+    }catch(e){
+      data._photos=(photos||[]).map(p=>p.dataUrl).slice(0,3);
+      saveLocal(data);
+      showToast('⚠️ Sauvegardé localement','error');
+    }
+  }else{data._photos=(photos||[]).map(p=>p.dataUrl).slice(0,3);saveLocal(data);showToast('📵 Sauvegardé localement','success');}
+  btn.disabled=false;btn.textContent='💾 Enregistrer la visite';}
+function saveLocal(data){const p=JSON.parse(localStorage.getItem('terrain_pending')||'[]');p.push(data);localStorage.setItem('terrain_pending',JSON.stringify(p));renderPending();}
+async function syncPending(){
+  if(!sb || !navigator.onLine) return;
+  if(!currentUser){ renderPending(); return; }
+
+  const pending=JSON.parse(localStorage.getItem('terrain_pending')||'[]');if(!pending.length)return;
+  let synced=0;const remaining=[];
+  for(const v of pending){try{
+    const photo_paths = (v._photos && v._photos.length) ? await uploadBase64PhotosArray(v.ruche_id, v._photos.slice(0,3)) : [];
+    const payload={
+      ruche_id:v.ruche_id,
+      date_visite:v.date_visite,
+      controle:v.controle,
+      reine_vue:v.reine_vue,
+      population:v.population,
+      nb_cadres_couvain:v.nb_cadres_couvain,
+      nb_hausses:v.nb_hausses,
+      meteo:v.meteo,
+      observations:v.observations,
+      agressivite:v.agressivite,
+      essaimage_signes:false,
+      inspecteur_id:currentUser.id,
+      photo_paths: photo_paths.length ? photo_paths : null
+    };
+    const{error}=await sb.from('visites').insert(payload);if(error)throw error;synced++;
+  }catch(e){remaining.push(v);}}
+  localStorage.setItem('terrain_pending',JSON.stringify(remaining));
+  if(synced)showToast('✅ '+synced+' visite(s) synchronisée(s) !','success');renderPending();}
+function renderPending(){const pending=JSON.parse(localStorage.getItem('terrain_pending')||'[]');
+  const section=document.getElementById('pending-section');
+  if(!pending.length){section.style.display='none';return;}
+  section.style.display='block';
+  document.getElementById('pending-list').innerHTML=pending.map(v=>
+    '<div class="pending-item"><strong>'+(v._nom||'Ruche #'+v._num)+'</strong> — '+new Date(v.date_visite).toLocaleDateString('fr-FR')+
+    '<span style="color:var(--text3);font-size:11px"> · '+(v.observations?v.observations.substring(0,30)+'…':'—')+'</span></div>').join('');}
+function resetForm(){setReine(null);
+  ['t-obs','t-pop','t-reserves','t-meteo','t-temperament','t-controle'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('t-couvain').textContent='0';document.getElementById('t-hausses').textContent='0';
+  clearPhotos();calcScore();}
+function showToast(msg,type){const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500);}
+initSupabase();
+renderPhotoGrid();
+calcScore();
+</script>
+</body>
+</html>
